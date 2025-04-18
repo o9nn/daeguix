@@ -5506,7 +5506,7 @@ confidence to have in an alignment.")
     (native-inputs
      (list perl))
     (inputs
-     (list openmpi boost sparsehash pigz zlib))
+     (list openmpi boost-1.83 sparsehash pigz zlib))
     (supported-systems '("x86_64-linux"))
     (home-page "https://sourceforge.net/p/bless-ec/wiki/Home/")
     (synopsis "Bloom-filter-based error correction tool for NGS reads")
