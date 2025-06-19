@@ -500,6 +500,8 @@ data types.")
                  (format #f "TESTOPTS=-j~d" (parallel-job-count))
                  ;; test_mmap fails on low-memory systems
                  " --exclude test_mmap test_socket"
+                 " test_os"              ; broken with unprivileged daemon
+                 " test_subprocess"      ; broken with unprivileged daemon
                  #$@(if (system-hurd?)
                         #~(" test_posix" ;multiple errors
                            " test_time"
@@ -765,6 +767,8 @@ def contents() -> str:
                             " test_threading"
                             " test_asyncio"
                             " test_shutdown"
+                            " test_os"              ; broken with unprivileged daemon
+                            " test_subprocess"      ; broken with unprivileged daemon
                             ,@(if (system-hurd?)
                                   '(" test_posix" ;multiple errors
                                     " test_time"
