@@ -10709,7 +10709,7 @@ high-performance multidimensional array containers for scientific computing.")
                 (patches (search-patches "fxdiv-system-libraries.patch"))))
       (build-system cmake-build-system)
       (inputs
-       (list googletest googlebenchmark))
+       (list googletest-1.8 googlebenchmark))
       (synopsis
        "C++ library for division via fixed-point multiplication by inverse")
       (description
