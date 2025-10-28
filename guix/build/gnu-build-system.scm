@@ -22,7 +22,6 @@
 (define-module (guix build gnu-build-system)
   #:use-module (guix build utils)
   #:use-module (guix build gremlin)
-  #:use-module (guix elf)
   #:use-module (ice-9 ftw)
   #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
@@ -49,6 +48,17 @@
 ;; builder-side code.
 ;;
 ;; Code:
+
+;;; This is a lazy module loading hack that is necessary until our
+;;; %bootstrap-guile package is new enough (>= 2.1.0) to have (system vm elf).
+(define has-system-vm-elf-module? #t)
+(catch 'misc-error
+ (lambda ()
+   (module-use! (current-module) (resolve-interface '(system vm elf))))
+ (lambda args
+   (set! has-system-vm-elf-module? #f)
+   (format (current-warning-port)
+           "lacking (system vm elf) module; some phases will be skipped~%")))
 
 (cond-expand
   (guile-2.2
@@ -567,7 +577,7 @@ makefiles."
                             (eq? 'regular (stat:type stat)))
                           #:stat lstat)))
 
-  (when strip-binaries?
+  (when (and has-system-vm-elf-module? strip-binaries?)
     (for-each
      strip-dir
      (append-map (match-lambda
@@ -586,7 +596,7 @@ makefiles."
           (dwz-command (which "dwz"))
           #:allow-other-keys)
   (define debug-output (assoc-ref outputs "debug"))
-  (when debug-output
+  (when (and has-system-vm-elf-module? debug-output)
     (let* ((common-file (string-append debug-output
                                        "/lib/debug/" (assoc-ref outputs "out")
                                        "/common.debug"))
@@ -669,7 +679,7 @@ phase after stripping."
               (length files) directory)
       (every* validate-needed-in-runpath files)))
 
-  (if validate-runpath?
+  (if (and has-system-vm-elf-module? validate-runpath?)
       (let ((dirs (append-map (match-lambda
                                 (("debug" . _)
                                  ;; The "debug" output is full of ELF files
@@ -931,7 +941,7 @@ that traversing all the RUNPATH entries entails."
         (format #t "created '~a' from ~a library search path entries~%"
                 cache-file (length library-path)))))
 
-  (if make-dynamic-linker-cache?
+  (if (and has-system-vm-elf-module? make-dynamic-linker-cache?)
       (match outputs
         (((_ . directories) ...)
          (for-each make-cache-for-output directories)))
