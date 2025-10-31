@@ -12407,10 +12407,7 @@ Interface) framework/toolkit for building async web services in Python.")
            python-itsdangerous
            python-starlette))
     (native-inputs
-     (list python-black
-           python-flake8
-           python-httpx
-           python-mypy
+     (list python-httpx
            python-poetry-core
            python-pytest
            python-pytest-asyncio
