@@ -2593,15 +2593,7 @@ software.")
     (build-system pyproject-build-system)
     (arguments (list #:tests? #f))      ; XXX: tests require networking
     (propagated-inputs (list python-requests))
-    (native-inputs (list python-black
-                         python-coverage
-                         python-flake8
-                         python-isort
-                         python-pytest
-                         python-pytest-cov
-                         python-setuptools
-                         python-sphinx
-                         python-wheel))
+    (native-inputs (list python-setuptools))
     (home-page "https://api.ovh.com")
     (synopsis "Interact with OVHcloud APIs")
     (description "This package provides the official module to perform HTTP requests
