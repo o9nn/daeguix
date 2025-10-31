@@ -24158,9 +24158,9 @@ aligner.")
              (lambda _
                (setenv "NUMBA_CACHE_DIR" "/tmp"))))))
     (propagated-inputs
-     (list python-anndata
+     (list pybind11     ;XXX: marked as install requirement
+           python-anndata
            python-hnswlib
-           python-isort
            python-igraph
            python-loompy
            python-louvain
@@ -24171,15 +24171,11 @@ aligner.")
            python-scanpy
            python-scikit-learn
            python-scipy
-           python-umap-learn
-           pybind11))
+           python-umap-learn))
     (native-inputs
-     (list python-black
-           python-flake8
-           python-hypothesis
-           python-pytest
-           python-setuptools-scm
-           python-wheel))
+     (list python-pytest
+           python-setuptools
+           python-setuptools-scm))
     (home-page "https://scvelo.org")
     (synopsis "RNA velocity generalized through dynamical modeling")
     (description "ScVelo is a scalable toolkit for RNA velocity analysis in
