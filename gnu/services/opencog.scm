@@ -166,7 +166,9 @@
                      (hash-set! agent-states name 'stopping)
                      (cog-logger-info
                       (format #f "Agent stopping: ~a" name))
-                     ;; Agent cleanup handled by thread termination
+                     ;; Note: Thread cleanup is handled by Guile's garbage collector
+                     ;; when the thread terminates. For graceful shutdown, agents
+                     ;; should implement their own termination flag checking.
                      (hash-set! agent-states name 'stopped)))
 
                  (define (get-agent-status name)
@@ -198,7 +200,10 @@
                                (cog-logger-info
                                 (format #f "Running agent: ~a"
                                         '#$(opencog-agent-configuration-name agent)))
-                               ;; Agent implementation loop
+                               ;; Placeholder agent implementation.
+                               ;; In production, this should be replaced with actual
+                               ;; agent logic loaded from the configured module.
+                               ;; This basic loop keeps the agent thread alive.
                                (let agent-loop ()
                                  (sleep 10)
                                  (agent-loop)))
@@ -259,7 +264,7 @@ using daemon-based architecture and pure Scheme implementation.")
   (match-record agent-config <opencog-agent-configuration>
     (name module entry-point auto-start? dependencies)
     (list (shepherd-service
-           (provision (list (symbol-append 'opencog-agent- (string->symbol (symbol->string name)))))
+           (provision (list (symbol-append 'opencog-agent- name)))
            (documentation (string-append "OpenCog agent: " (symbol->string name)))
            (requirement `(opencog-orchestration ,@dependencies))
            (modules `((opencog)

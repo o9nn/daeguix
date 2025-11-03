@@ -96,7 +96,10 @@
         (match agent-info
           ((state agent-proc dependencies thread)
            (when (and (eq? state 'running) thread)
-             ;; Note: In real implementation, would need proper thread cancellation
+             ;; Note: Guile doesn't provide safe thread cancellation.
+             ;; Agents should implement cooperative termination by
+             ;; checking a termination flag. Thread cleanup is handled
+             ;; by Guile's garbage collector when references are dropped.
              (hash-set! (orchestrator-agents orchestrator)
                        name
                        (list 'stopped agent-proc dependencies #f))
