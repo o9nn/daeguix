@@ -1,0 +1,137 @@
+;;; GNU Guix --- Functional package management for GNU
+;;; Copyright © 2025 OpenCog Orchestration Contributors
+;;;
+;;; Complete system configuration example using OpenCog Orchestration
+;;;
+;;; This file demonstrates a complete operating system configuration
+;;; that includes the OpenCog autonomous multi-agent orchestration
+;;; workbench as a system service.
+
+(use-modules (gnu)
+             (gnu services)
+             (gnu services opencog)
+             (gnu services networking)
+             (gnu services ssh)
+             (gnu packages opencog)
+             (gnu system)
+             (gnu system file-systems)
+             (guix gexp))
+
+(use-service-modules desktop networking ssh)
+(use-package-modules screen ssh)
+
+;;;
+;;; OpenCog Multi-Agent Configuration
+;;;
+
+(define %opencog-reasoning-agent
+  (opencog-agent-configuration
+   (name 'reasoning-agent)
+   (module '(gnu opencog agents))
+   (auto-start? #t)
+   (dependencies '())))
+
+(define %opencog-attention-agent
+  (opencog-agent-configuration
+   (name 'attention-agent)
+   (module '(gnu opencog agents))
+   (auto-start? #t)
+   (dependencies '())))
+
+(define %opencog-learning-agent
+  (opencog-agent-configuration
+   (name 'learning-agent)
+   (module '(gnu opencog agents))
+   (auto-start? #t)
+   ;; Learning depends on reasoning
+   (dependencies '(reasoning-agent))))
+
+(define %opencog-planning-agent
+  (opencog-agent-configuration
+   (name 'planning-agent)
+   (module '(gnu opencog agents))
+   (auto-start? #t)
+   ;; Planning depends on both reasoning and attention
+   (dependencies '(reasoning-agent attention-agent))))
+
+(define %opencog-communication-agent
+  (opencog-agent-configuration
+   (name 'communication-agent)
+   (module '(gnu opencog agents))
+   (auto-start? #t)
+   (dependencies '())))
+
+;;;
+;;; OpenCog Orchestration Service Configuration
+;;;
+
+(define %opencog-orchestration-config
+  (opencog-orchestration-configuration
+   (port 17001)
+   (log-level "INFO")
+   (data-directory "/var/lib/opencog")
+   (agents (list %opencog-reasoning-agent
+                 %opencog-attention-agent
+                 %opencog-learning-agent
+                 %opencog-planning-agent
+                 %opencog-communication-agent))))
+
+;;;
+;;; System Services
+;;;
+
+(define %opencog-services
+  (list
+   ;; OpenCog orchestration service
+   (service opencog-orchestration-service-type
+            %opencog-orchestration-config)
+
+   ;; SSH for remote access
+   (service openssh-service-type
+            (openssh-configuration
+             (permit-root-login #t)
+             (password-authentication? #f)))
+
+   ;; Network time protocol
+   (service ntp-service-type)))
+
+;;;
+;;; Operating System Configuration
+;;;
+
+(operating-system
+  (host-name "opencog-workbench")
+  (timezone "UTC")
+  (locale "en_US.utf8")
+
+  ;; Boot configuration
+  (bootloader (bootloader-configuration
+               (bootloader grub-bootloader)
+               (targets '("/dev/sda"))))
+
+  ;; File systems
+  (file-systems (cons (file-system
+                        (device "/dev/sda1")
+                        (mount-point "/")
+                        (type "ext4"))
+                      %base-file-systems))
+
+  ;; User accounts
+  (users (cons (user-account
+                (name "opencog")
+                (comment "OpenCog Administrator")
+                (group "users")
+                (supplementary-groups '("wheel" "audio" "video"))
+                (home-directory "/home/opencog"))
+               %base-user-accounts))
+
+  ;; System-wide packages
+  (packages (cons* screen
+                   %base-packages))
+
+  ;; Services
+  (services (append %opencog-services
+                    %base-services))
+
+  ;; Allow substitute downloads
+  (name-service-switch %mdns-host-lookup-nss))
