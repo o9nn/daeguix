@@ -615,6 +615,7 @@ SCM_TESTS =					\
   tests/services/configuration.scm		\
   tests/services/lightdm.scm			\
   tests/services/linux.scm			\
+  tests/services/opencog.scm			\
   tests/services/pam-mount.scm			\
   tests/services/telephony.scm			\
   tests/services/vpn.scm			\
