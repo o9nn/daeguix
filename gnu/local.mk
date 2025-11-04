@@ -757,6 +757,7 @@ GNU_SYSTEM_MODULES =				\
   %D%/services/networking.scm			\
   %D%/services/nix.scm				\
   %D%/services/nfs.scm			\
+  %D%/services/opencog.scm			\
   %D%/services/pam-mount.scm			\
   %D%/services/power.scm			\
   %D%/services/science.scm			\
