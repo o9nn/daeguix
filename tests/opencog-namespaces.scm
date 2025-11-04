@@ -61,7 +61,8 @@
 
 (test-assert "9p-service creation"
   (let* ((ns (make-namespace-manager))
-         (svc (make-9p-service ns #:port 9564)))
+         ;; Use default 9P port
+         (svc (make-9p-service ns)))
     (9p-service? svc)))
 
 (test-assert "9p-service start and stop"

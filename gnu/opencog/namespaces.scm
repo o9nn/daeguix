@@ -41,6 +41,11 @@
 ;;; through a unified filesystem-like interface.
 ;;;
 
+;;; Constants
+
+(define DEFAULT-9P-PORT 9564)
+(define DEFAULT-NAMESPACE-ROOT "/")
+
 (define-record-type <namespace>
   (make-namespace-internal root bindings mutex)
   namespace?
@@ -127,7 +132,7 @@
   (running? 9p-running? set-9p-running?!)
   (mutex 9p-mutex))
 
-(define* (make-9p-service namespace #:key (port 9564))
+(define* (make-9p-service namespace #:key (port DEFAULT-9P-PORT))
   "Create a 9P-style service for namespace access."
   (make-9p-service-internal
    namespace

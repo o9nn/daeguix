@@ -39,6 +39,17 @@
 ;;; following the daemon-centric architecture paradigm.
 ;;;
 
+;;; Constants
+
+(define DEFAULT-RESOURCE-MONITOR-INTERVAL 10)
+(define DEFAULT-CPU-THRESHOLD 80)
+(define DEFAULT-MEMORY-THRESHOLD 90)
+(define DEFAULT-CPU-BASELINE 20)
+(define DEFAULT-CPU-VARIANCE 30)
+(define DEFAULT-MEMORY-BASELINE 30)
+(define DEFAULT-MEMORY-VARIANCE 40)
+(define NANOSECONDS-PER-SECOND 1000000000.0)
+
 (define-record-type <daemon>
   (make-daemon-internal name type state thread mutex config metrics)
   daemon?
@@ -56,12 +67,13 @@
 
 (define* (make-resource-monitor-daemon #:key
                                       (name "resource-monitor")
-                                      (interval 10)
-                                      (thresholds '((cpu . 80) (memory . 90)))
-                                      (cpu-baseline 20)
-                                      (cpu-variance 30)
-                                      (memory-baseline 30)
-                                      (memory-variance 40))
+                                      (interval DEFAULT-RESOURCE-MONITOR-INTERVAL)
+                                      (thresholds `((cpu . ,DEFAULT-CPU-THRESHOLD)
+                                                   (memory . ,DEFAULT-MEMORY-THRESHOLD)))
+                                      (cpu-baseline DEFAULT-CPU-BASELINE)
+                                      (cpu-variance DEFAULT-CPU-VARIANCE)
+                                      (memory-baseline DEFAULT-MEMORY-BASELINE)
+                                      (memory-variance DEFAULT-MEMORY-VARIANCE))
   "Create a daemon that monitors system resources and agent health."
   (make-daemon-internal
    name
@@ -166,7 +178,7 @@
               (hash-set! (daemon-metrics daemon) 'last-sync sync-start)
               (hash-set! (daemon-metrics daemon) 'sync-duration
                         (+ (time-second sync-duration)
-                           (/ (time-nanosecond sync-duration) 1000000000.0))))
+                           (/ (time-nanosecond sync-duration) NANOSECONDS-PER-SECOND))))
             
             (format #t "[~a] Sync completed in ~a seconds~%"
                     (daemon-name daemon)

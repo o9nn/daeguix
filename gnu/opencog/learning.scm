@@ -41,6 +41,17 @@
 ;;; learning mechanisms in pure Scheme for autonomous agent learning.
 ;;;
 
+;;; Constants
+
+(define DEFAULT-MIN-SUPPORT 0.1)
+(define DEFAULT-LEARNING-RATE 0.01)
+(define DEFAULT-RL-GAMMA 0.9)
+(define DEFAULT-RL-ALPHA 0.1)
+(define DEFAULT-RL-EPSILON 0.1)
+(define DEFAULT-HEBBIAN-DECAY 0.01)
+(define DEFAULT-HEBBIAN-THRESHOLD 0.5)
+(define HEBBIAN-LEARNING-DELTA 0.1)
+
 ;;;
 ;;; Pattern Mining
 ;;;
@@ -61,7 +72,7 @@
   (min-support miner-min-support)
   (mutex miner-mutex))
 
-(define* (make-pattern-miner #:key (min-support 0.1))
+(define* (make-pattern-miner #:key (min-support DEFAULT-MIN-SUPPORT))
   "Create a pattern mining engine with minimum support threshold."
   (make-miner-internal
    (make-hash-table)
@@ -126,7 +137,7 @@
   (learning-rate learner-learning-rate)
   (mutex learner-mutex))
 
-(define* (make-cognitive-learner #:key (learning-rate 0.01))
+(define* (make-cognitive-learner #:key (learning-rate DEFAULT-LEARNING-RATE))
   "Create a cognitive learning agent with specified learning rate."
   (make-learner-internal
    '()
@@ -169,7 +180,10 @@
   (epsilon rl-epsilon set-rl-epsilon!) ; Exploration rate
   (mutex rl-mutex))
 
-(define* (make-reinforcement-engine #:key (gamma 0.9) (alpha 0.1) (epsilon 0.1))
+(define* (make-reinforcement-engine #:key
+                                   (gamma DEFAULT-RL-GAMMA)
+                                   (alpha DEFAULT-RL-ALPHA)
+                                   (epsilon DEFAULT-RL-EPSILON))
   "Create a reinforcement learning engine (Q-learning variant)."
   (make-rl-internal
    (make-hash-table)
@@ -232,7 +246,9 @@
   (threshold hebbian-threshold)   ; Activation threshold
   (mutex hebbian-mutex))
 
-(define* (make-hebbian-learner #:key (decay-rate 0.01) (threshold 0.5))
+(define* (make-hebbian-learner #:key
+                              (decay-rate DEFAULT-HEBBIAN-DECAY)
+                              (threshold DEFAULT-HEBBIAN-THRESHOLD))
   "Create a Hebbian learning system for association learning."
   (make-hebbian-internal
    (make-hash-table)
@@ -248,7 +264,7 @@
                                                     link-key
                                                     0.0))
            ;; Hebbian update: strengthen if both active
-           (delta (* activation 0.1))
+           (delta (* activation HEBBIAN-LEARNING-DELTA))
            (new-strength (+ current-strength delta)))
       (hash-table-set! (hebbian-links learner) link-key new-strength)
       (format #t "[Hebbian] Link ~a <-> ~a strength: ~a~%"
