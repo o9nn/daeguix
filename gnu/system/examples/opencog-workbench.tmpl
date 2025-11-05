@@ -5,7 +5,8 @@
 ;;;
 ;;; This file demonstrates a complete operating system configuration
 ;;; that includes the OpenCog autonomous multi-agent orchestration
-;;; workbench as a system service.
+;;; workbench as a system service with Plan9/Inferno-inspired features
+;;; and machine learning capabilities.
 
 (use-modules (gnu)
              (gnu services)
@@ -22,6 +23,9 @@
 
 ;;;
 ;;; OpenCog Multi-Agent Configuration
+;;;
+;;; The following agents demonstrate the autonomous multi-agent
+;;; architecture with dependency tracking and auto-start capability.
 ;;;
 
 (define %opencog-reasoning-agent
@@ -43,7 +47,7 @@
    (name 'learning-agent)
    (module '(gnu opencog agents))
    (auto-start? #t)
-   ;; Learning depends on reasoning
+   ;; Learning depends on reasoning (demonstrates dependency tracking)
    (dependencies '(reasoning-agent))))
 
 (define %opencog-planning-agent
@@ -64,6 +68,15 @@
 ;;;
 ;;; OpenCog Orchestration Service Configuration
 ;;;
+;;; This configuration includes:
+;;; - All cognitive agents with dependency tracking
+;;; - CogServer on port 17001 for network access
+;;; - Plan9-inspired namespace at /opencog
+;;; - 9P-style service protocol (port 9564)
+;;; - Pure Scheme daemons for resource monitoring
+;;; - Distributed coordination infrastructure
+;;; - Machine learning subsystems (pattern mining, RL, Hebbian)
+;;;
 
 (define %opencog-orchestration-config
   (opencog-orchestration-configuration
@@ -79,24 +92,46 @@
 ;;;
 ;;; System Services
 ;;;
+;;; Includes OpenCog orchestration with full daemon stack,
+;;; SSH for remote management, and NTP for time synchronization.
+;;;
 
 (define %opencog-services
   (list
-   ;; OpenCog orchestration service
+   ;; OpenCog orchestration service with:
+   ;; - 5 autonomous agents (reasoning, attention, learning, planning, communication)
+   ;; - 4 system daemons (resource monitor, AtomSpace sync, attention allocation, health monitor)
+   ;; - Plan9-style namespace mounted at /opencog
+   ;; - 9P service for network-transparent resource access
+   ;; - Inferno-inspired distributed coordination
+   ;; - Integrated machine learning (pattern mining, RL, Hebbian)
    (service opencog-orchestration-service-type
             %opencog-orchestration-config)
 
-   ;; SSH for remote access
+   ;; SSH for remote access to the workbench
    (service openssh-service-type
             (openssh-configuration
              (permit-root-login #t)
              (password-authentication? #f)))
 
-   ;; Network time protocol
+   ;; Network time protocol for accurate timestamps
    (service ntp-service-type)))
 
 ;;;
 ;;; Operating System Configuration
+;;;
+;;; A minimal Guix System configuration running the OpenCog
+;;; autonomous multi-agent orchestration workbench.
+;;;
+;;; Key Features:
+;;; - Pure Scheme implementation throughout
+;;; - Daemon-based architecture for all major functions
+;;; - Plan9-inspired resource namespace
+;;; - Inferno-inspired distributed coordination
+;;; - Integrated machine learning capabilities
+;;; - Autonomous agent lifecycle management
+;;; - Real-time resource monitoring
+;;; - Network-transparent operation via 9P protocol
 ;;;
 
 (operating-system
@@ -129,9 +164,35 @@
   (packages (cons* screen
                    %base-packages))
 
-  ;; Services
+  ;; Services - includes full OpenCog stack
   (services (append %opencog-services
                     %base-services))
 
   ;; Allow substitute downloads
   (name-service-switch %mdns-host-lookup-nss))
+
+;;;
+;;; Usage Notes:
+;;;
+;;; After system boot, the following will be running:
+;;;
+;;; 1. CogServer on port 17001 (network REPL access)
+;;; 2. Five autonomous agents performing cognitive tasks
+;;; 3. Four system daemons monitoring and maintaining the system
+;;; 4. 9P service on port 9564 for namespace access
+;;; 5. Distributed coordinator ready for multi-node operation
+;;;
+;;; To interact with the system:
+;;;   - SSH: ssh opencog@opencog-workbench
+;;;   - CogServer: telnet localhost 17001
+;;;   - Logs: /var/log/opencog-orchestration.log
+;;;   - Data: /var/lib/opencog
+;;;
+;;; The namespace is organized as:
+;;;   /opencog/agents/*       - Running agent instances
+;;;   /opencog/atomspace/*    - AtomSpace instances
+;;;   /opencog/services/*     - System services
+;;;   /opencog/proc/*         - Process information
+;;;   /opencog/dev/*          - Device interfaces
+;;;   /opencog/net/*          - Network resources
+;;;

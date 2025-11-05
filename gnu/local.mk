@@ -517,6 +517,12 @@ GNU_SYSTEM_MODULES =				\
   %D%/packages/onc-rpc.scm			\
   %D%/packages/opencl.scm			\
   %D%/packages/opencog.scm			\
+  %D%/opencog/agents.scm			\
+  %D%/opencog/orchestration.scm			\
+  %D%/opencog/namespaces.scm			\
+  %D%/opencog/distributed.scm			\
+  %D%/opencog/learning.scm			\
+  %D%/opencog/daemons.scm			\
   %D%/packages/openldap.scm			\
   %D%/packages/openpgp.scm			\
   %D%/packages/openstack.scm			\

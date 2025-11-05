@@ -21,6 +21,8 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
+  #:use-module (gnu opencog learning)
+  #:use-module (gnu opencog namespaces)
   #:export (make-reasoning-agent
             make-learning-agent
             make-attention-agent
@@ -69,19 +71,41 @@
 ;;;
 
 (define* (make-learning-agent #:key (name "learning-agent"))
-  "Create a learning agent that discovers patterns in the AtomSpace."
-  (let ((state 'initialized))
+  "Create a learning agent that discovers patterns in the AtomSpace using ML techniques."
+  (let ((state 'initialized)
+        (pattern-miner (make-pattern-miner #:min-support 0.1))
+        (cognitive-learner (make-cognitive-learner #:learning-rate 0.01))
+        (hebbian-learner (make-hebbian-learner)))
     (make-agent-internal
      name
      state
      (lambda (atomspace)
-       ;; Main learning loop
-       (let loop ((patterns '()))
-         (format #t "[~a] Pattern discovery cycle~%" name)
-         ;; Discover and learn patterns
-         ;; This is a placeholder for actual pattern mining logic
+       ;; Main learning loop with integrated ML
+       (let loop ((patterns '()) (iteration 0))
+         (format #t "[~a] Pattern discovery cycle ~a~%" name iteration)
+         
+         ;; Mine new patterns from AtomSpace
+         (let ((new-patterns (mine-patterns pattern-miner atomspace
+                                          (lambda (x) #t))))
+           (for-each
+            (lambda (pattern)
+              (let ((quality (evaluate-pattern pattern atomspace)))
+                (when (> quality 0.5)
+                  (format #t "[~a] High-quality pattern found: quality=~a~%"
+                          name quality))))
+            new-patterns))
+         
+         ;; Apply Hebbian learning for concept associations
+         (apply-decay hebbian-learner)
+         
+         ;; Learn from experiences
+         (when (> iteration 0)
+           (learn-from-experience cognitive-learner
+                                 (list 'pattern-mining iteration)
+                                 (length patterns)))
+         
          (sleep 20)
-         (loop patterns)))
+         (loop (append patterns new-patterns) (+ iteration 1))))
      (lambda ()
        (format #t "[~a] Stopping learning agent~%" name)))))
 

@@ -616,6 +616,10 @@ SCM_TESTS =					\
   tests/services/lightdm.scm			\
   tests/services/linux.scm			\
   tests/services/opencog.scm			\
+  tests/opencog-namespaces.scm			\
+  tests/opencog-distributed.scm			\
+  tests/opencog-learning.scm			\
+  tests/opencog-daemons.scm			\
   tests/services/pam-mount.scm			\
   tests/services/telephony.scm			\
   tests/services/vpn.scm			\

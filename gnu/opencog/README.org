@@ -1,0 +1,258 @@
+;;; -*- mode: org; coding: utf-8; -*-
+
+#+TITLE: OpenCog Autonomous Multi-Agent Orchestration Workbench
+
+* Overview
+
+This implementation provides OpenCog as an autonomous multi-agent orchestration
+workbench, implemented entirely using daemon-based architecture and pure Scheme
+programming. The design incorporates useful adaptations from Plan9, Inferno
+operating systems, and modern machine learning techniques.
+
+* Architecture
+
+** Core Principles
+
+1. *Daemon-Centric*: All major functions run as autonomous daemons
+2. *Pure Scheme*: Implementation in Guile Scheme for maximum flexibility
+3. *Plan9-Inspired*: Hierarchical namespace and everything-as-a-file paradigm
+4. *Inferno-Inspired*: Distributed coordination and Styx-like protocols
+5. *Machine Learning*: Integrated pattern mining, RL, and Hebbian learning
+
+** Components
+
+*** Namespace Management (gnu opencog namespaces)
+
+Implements Plan9-style hierarchical namespace where all resources (agents,
+AtomSpaces, services) are accessible through a unified filesystem-like
+interface.
+
+Standard namespace paths:
+- /agents       - Running cognitive agents
+- /atomspace    - AtomSpace instances
+- /services     - System services
+- /proc         - Agent process information
+- /dev          - Device-like interfaces
+- /net          - Network resources
+
+Features:
+- bind/unbind operations
+- mount/unmount for namespace composition
+- 9P-style service protocol for remote access
+- namespace walking and introspection
+
+*** Distributed Coordination (gnu opencog distributed)
+
+Inferno-inspired distributed system for multi-node agent orchestration.
+
+Features:
+- Node registration and management
+- Message passing between nodes
+- Broadcast operations
+- Styx-inspired protocol for streaming operations
+- AtomSpace synchronization across nodes
+- Load balancing and task distribution
+
+*** Machine Learning Infrastructure (gnu opencog learning)
+
+Pure Scheme implementation of ML algorithms for autonomous agent learning.
+
+Components:
+1. *Pattern Mining*: Discovers frequent patterns in AtomSpace
+   - Configurable minimum support threshold
+   - Pattern evaluation metrics
+   - Pattern quality assessment
+
+2. *Cognitive Learning*: Experience-based learning
+   - Experience-outcome pair learning
+   - Internal model updates
+   - Configurable learning rate
+
+3. *Reinforcement Learning*: Q-learning variant
+   - State-action-reward learning
+   - Epsilon-greedy exploration
+   - Discount factor and learning rate tuning
+
+4. *Hebbian Learning*: Neural plasticity simulation
+   - Association strength updates
+   - Decay (forgetting) mechanism
+   - Activation threshold management
+
+*** Pure Scheme Daemons (gnu opencog daemons)
+
+Autonomous daemons for system monitoring and management.
+
+Daemon Types:
+1. *Resource Monitor*: Tracks CPU, memory, and agent health
+2. *AtomSpace Sync*: Periodic synchronization across nodes
+3. *Attention Allocation*: Manages STI/LTI values continuously
+4. *Health Monitor*: Overall system health assessment
+
+All daemons:
+- Pure Scheme implementation
+- Configurable intervals
+- Metrics collection
+- Concurrent operation
+- Graceful start/stop
+
+*** Agent Framework (gnu opencog agents)
+
+Enhanced agent system with ML integration.
+
+Agent Types:
+- Reasoning Agent: Logical inference
+- Learning Agent: Pattern discovery with ML
+- Attention Agent: Resource allocation
+- Planning Agent: Action sequence generation
+- Communication Agent: Inter-agent coordination
+
+*** Orchestration (gnu opencog orchestration)
+
+Central coordination system integrating all components.
+
+Features:
+- Agent lifecycle management
+- Namespace integration
+- Distributed coordination
+- Daemon management
+- Dependency tracking
+- Status monitoring
+
+** Service Integration (gnu services opencog)
+
+Shepherd service configuration for system-level deployment.
+
+Capabilities:
+- Automatic daemon startup
+- Agent auto-start with dependencies
+- CogServer integration
+- Namespace service initialization
+- Distributed node registration
+- Logging and monitoring
+
+* Usage
+
+** System Configuration Example
+
+#+BEGIN_SRC scheme
+(use-modules (gnu)
+             (gnu services opencog))
+
+(operating-system
+  ...
+  (services
+   (cons*
+    (service opencog-orchestration-service-type
+             (opencog-orchestration-configuration
+              (port 17001)
+              (log-level "INFO")
+              (agents (list
+                       (opencog-agent-configuration
+                        (name 'reasoning-agent)
+                        (module '(gnu opencog agents))
+                        (auto-start? #t))
+                       (opencog-agent-configuration
+                        (name 'learning-agent)
+                        (module '(gnu opencog agents))
+                        (auto-start? #t)
+                        (dependencies '(reasoning-agent)))))))
+    %base-services)))
+#+END_SRC
+
+** Programmatic Usage
+
+#+BEGIN_SRC scheme
+;; Create orchestrator
+(use-modules (gnu opencog orchestration)
+             (gnu opencog agents)
+             (gnu opencog daemons))
+
+(define atomspace (cog-atomspace))
+(define orch (make-orchestrator atomspace))
+
+;; Add daemons
+(orchestrator-add-daemon orch
+  (make-resource-monitor-daemon #:interval 10))
+
+;; Register and start agents
+(orchestrator-register-agent orch 'my-agent
+  (lambda (as) (format #t "Agent running~%"))
+  '())
+
+(orchestrator-start-agent orch 'my-agent)
+
+;; Access namespace
+(define ns (orchestrator-get-namespace orch))
+(namespace-lookup ns "/agents/my-agent")
+#+END_SRC
+
+** Machine Learning Example
+
+#+BEGIN_SRC scheme
+(use-modules (gnu opencog learning))
+
+;; Pattern mining
+(define miner (make-pattern-miner #:min-support 0.1))
+(define patterns (mine-patterns miner atomspace (lambda (x) #t)))
+
+;; Reinforcement learning
+(define rl-engine (make-reinforcement-engine))
+(update-rewards rl-engine 'state1 'action1 1.0 'state2)
+(select-action rl-engine 'state1 '(action1 action2))
+
+;; Hebbian learning
+(define hebbian (make-hebbian-learner))
+(update-links hebbian 'concept-a 'concept-b 0.8)
+(get-link-strength hebbian 'concept-a 'concept-b)
+#+END_SRC
+
+* Testing
+
+Run the test suite:
+
+#+BEGIN_SRC shell
+make check TESTS="tests/opencog-namespaces.scm \
+                  tests/opencog-distributed.scm \
+                  tests/opencog-learning.scm \
+                  tests/opencog-daemons.scm \
+                  tests/services/opencog.scm"
+#+END_SRC
+
+* Design Inspirations
+
+** From Plan9
+- Hierarchical namespace management
+- Everything-as-a-file paradigm
+- bind/mount operations for resource composition
+- 9P protocol for network transparency
+
+** From Inferno
+- Distributed systems architecture
+- Styx protocol for streaming operations
+- Message passing and coordination
+- Network-transparent resource access
+
+** From Machine Learning
+- Pattern mining for knowledge discovery
+- Reinforcement learning for adaptive behavior
+- Hebbian learning for association formation
+- Cognitive learning from experience
+
+* Future Enhancements
+
+- Full 9P protocol network implementation
+- Distributed AtomSpace with CRDT-like semantics
+- Advanced pattern mining algorithms (FP-growth, MOSES)
+- Deep learning integration
+- Multi-agent negotiation protocols
+- Fault tolerance and recovery mechanisms
+- Performance monitoring and optimization
+- Web-based management interface
+
+* License
+
+GNU General Public License version 3 or later.
+
+* Copyright
+
+Copyright © 2025 OpenCog Orchestration Contributors

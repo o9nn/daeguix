@@ -97,12 +97,18 @@
                               (opencog logger)
                               (opencog cogserver)
                               (opencog attention)
+                              (gnu opencog orchestration)
+                              (gnu opencog agents)
+                              (gnu opencog namespaces)
+                              (gnu opencog distributed)
+                              (gnu opencog daemons)
+                              (gnu opencog learning)
                               (ice-9 threads)
                               (ice-9 match))
 
                  ;; Initialize logging
                  (cog-logger-set-level! #$log-level)
-                 (cog-logger-info "Starting OpenCog Orchestration Service")
+                 (cog-logger-info "Starting OpenCog Orchestration Service with Plan9/Inferno features")
 
                  ;; Create data directory if needed
                  (unless (file-exists? #$data-directory)
@@ -118,79 +124,89 @@
                  (cog-logger-info
                   (format #f "CogServer started on port ~a" #$port))
 
-                 ;; Initialize attention allocation
-                 (cog-logger-info "Initializing attention allocation system")
+                 ;; Create orchestrator with integrated features
+                 (define orchestrator (make-orchestrator atomspace))
+                 (cog-logger-info "Orchestrator created with namespace and distributed coordination")
 
-                 ;; Agent registry and coordination
-                 (define agent-registry (make-hash-table))
-                 (define agent-states (make-hash-table))
-                 (define orchestration-mutex (make-mutex))
+                 ;; Start system daemons
+                 (define resource-daemon
+                   (make-resource-monitor-daemon #:interval 10))
+                 (orchestrator-add-daemon orchestrator resource-daemon)
+                 (cog-logger-info "Resource monitor daemon started")
 
-                 ;; Agent lifecycle management
+                 (define atomspace-sync-daemon
+                   (make-atomspace-sync-daemon #:sync-interval 30))
+                 (orchestrator-add-daemon orchestrator atomspace-sync-daemon)
+                 (cog-logger-info "AtomSpace sync daemon started")
+
+                 (define attention-daemon
+                   (make-attention-allocation-daemon #:allocation-interval 5))
+                 (orchestrator-add-daemon orchestrator attention-daemon)
+                 (cog-logger-info "Attention allocation daemon started")
+
+                 (define health-daemon
+                   (make-health-monitor-daemon #:check-interval 15))
+                 (orchestrator-add-daemon orchestrator health-daemon)
+                 (cog-logger-info "Health monitor daemon started")
+
+                 ;; Start 9P service for namespace access
+                 (9p-service-start (orchestrator-9p-service orchestrator))
+                 (cog-logger-info "9P-style namespace service started")
+
+                 ;; Initialize distributed coordination
+                 (coordinator-register-node (orchestrator-coordinator orchestrator)
+                                           'local-node
+                                           "localhost"
+                                           '(reasoning learning planning))
+                 (cog-logger-info "Local node registered in distributed coordinator")
+
+                 ;; Agent registry and coordination using orchestrator
                  (define (register-agent name agent-proc dependencies)
-                   (with-mutex orchestration-mutex
-                     (hash-set! agent-registry name
-                                (list agent-proc dependencies))
-                     (hash-set! agent-states name 'registered)
-                     (cog-logger-info
-                      (format #f "Agent registered: ~a" name))))
+                   (orchestrator-register-agent orchestrator name agent-proc dependencies)
+                   (cog-logger-info
+                    (format #f "Agent registered: ~a" name)))
 
                  (define (start-agent name)
-                   (with-mutex orchestration-mutex
-                     (let ((agent-info (hash-ref agent-registry name)))
-                       (when agent-info
-                         (match agent-info
-                           ((agent-proc dependencies)
-                            ;; Check dependencies
-                            (if (every (lambda (dep)
-                                        (eq? 'running
-                                             (hash-ref agent-states dep)))
-                                      dependencies)
-                                (begin
-                                  (hash-set! agent-states name 'starting)
-                                  (call-with-new-thread
-                                   (lambda ()
-                                     (hash-set! agent-states name 'running)
-                                     (cog-logger-info
-                                      (format #f "Agent started: ~a" name))
-                                     (agent-proc atomspace)
-                                     (hash-set! agent-states name 'stopped)))
-                                  #t)
-                                (begin
-                                  (cog-logger-warn
-                                   (format #f "Dependencies not met for ~a" name))
-                                  #f))))))))
+                   (if (orchestrator-start-agent orchestrator name)
+                       (cog-logger-info (format #f "Agent started: ~a" name))
+                       (cog-logger-warn (format #f "Failed to start agent: ~a" name))))
 
                  (define (stop-agent name)
-                   (with-mutex orchestration-mutex
-                     (hash-set! agent-states name 'stopping)
-                     (cog-logger-info
-                      (format #f "Agent stopping: ~a" name))
-                     ;; Note: Thread cleanup is handled by Guile's garbage collector
-                     ;; when the thread terminates. For graceful shutdown, agents
-                     ;; should implement their own termination flag checking.
-                     (hash-set! agent-states name 'stopped)))
+                   (when (orchestrator-stop-agent orchestrator name)
+                     (cog-logger-info (format #f "Agent stopped: ~a" name))))
 
                  (define (get-agent-status name)
-                   (hash-ref agent-states name 'unknown))
+                   (let ((statuses (orchestrator-get-status orchestrator)))
+                     (assoc-ref statuses name)))
 
                  ;; Orchestration control loop
                  (define (orchestration-loop)
                    (let loop ()
-                     ;; Monitor agent states
-                     (with-mutex orchestration-mutex
-                       (hash-for-each
-                        (lambda (name state)
-                          (when (eq? state 'error)
+                     ;; Monitor agent states using orchestrator
+                     (let ((statuses (orchestrator-get-status orchestrator)))
+                       (for-each
+                        (lambda (status-pair)
+                          (when (eq? (cdr status-pair) 'error)
                             (cog-logger-error
-                             (format #f "Agent in error state: ~a" name))))
-                        agent-states))
+                             (format #f "Agent in error state: ~a" (car status-pair)))))
+                        statuses))
+                     
+                     ;; Check daemon health
+                     (for-each
+                      (lambda (daemon)
+                        (let ((metrics (daemon-get-metrics daemon)))
+                          (when (null? metrics)
+                            (cog-logger-warn
+                             (format #f "Daemon ~a has no metrics" (daemon-name daemon))))))
+                      (orchestrator-daemons orchestrator))
+                     
                      ;; Sleep and continue
                      (sleep 5)
                      (loop)))
 
                  ;; Start orchestration monitoring thread
                  (call-with-new-thread orchestration-loop)
+                 (cog-logger-info "Orchestration monitoring thread started")
 
                  ;; Register configured agents
                  #$@(map (lambda (agent)
