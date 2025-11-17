@@ -71,6 +71,24 @@ Nested event loop scheduler with time scaling:
 - Event registration and dispatch
 - Inspired by the ancient Antikythera astronomical computer
 
+### 8. Address System (`address.scm`)
+
+URI-based daemon routing and thread pool management:
+- D9 address protocol (d9://type/group/name)
+- Address router for daemon resolution
+- Thread pool management with instant cycle spawn/drop
+- Synchronous cycle coordination (1 to 10^12 scalability)
+- Replaces namespace lookups with direct addressing
+
+### 9. Virtual Devices (`device.scm`)
+
+Daemon-driven device abstractions:
+- Clockwork devices: nested gearing arrays for complex timing
+- Gesture devices: spatio-temporal vectors with intent recognition
+- Device drivers: pluggable event handlers
+- Egregore integration: devices initiated by orchestrators
+- Pure daemon orchestrarchitecture
+
 ## Usage
 
 ### Basic Example
@@ -113,6 +131,9 @@ guile -L /path/to/daeguix gnu/dan9/egregore-example.scm
 
 # Run antikythera example (time scaling)
 guile -L /path/to/daeguix gnu/dan9/antikythera-example.scm
+
+# Run address system & virtual devices example
+guile -L /path/to/daeguix gnu/dan9/address-device-example.scm
 ```
 
 ### Running Tests
@@ -125,6 +146,14 @@ guile -L /path/to/daeguix tests/dan9.scm
 guile -L /path/to/daeguix tests/egregore.scm
 
 # Antikythera tests
+guile -L /path/to/daeguix tests/antikythera.scm
+
+# Address system tests
+guile -L /path/to/daeguix tests/address.scm
+
+# Virtual device tests
+guile -L /path/to/daeguix tests/device.scm
+```
 guile -L /path/to/daeguix tests/antikythera.scm
 ```
 
@@ -276,6 +305,104 @@ With the Antikythera mechanism, you can simulate years in seconds:
 - Perfect for modeling long-term processes, astronomical cycles, or aging systems
 - Nested event loops fire at different time scales simultaneously
 
+## Address System: D9 Protocol
+
+The D9 address system replaces Plan9-style namespaces with URI-based daemon routing, enabling instant cycle spawn/drop and thread pool synchronization.
+
+### D9 Address Format
+
+```scheme
+(use-modules (gnu dan9 address))
+
+;; D9 URI format: d9://type/group/name
+(define router (make-address-router))
+
+;; Register daemons with addresses
+(router-register! router "d9://egregore/workers/worker-1" worker1)
+(router-register! router "d9://scheduler/year-gear" year-gear)
+
+;; Resolve addresses
+(define addr (router-resolve router "d9://egregore/workers/worker-1"))
+;; => <address> with daemon reference
+```
+
+### Thread Pool Management
+
+Instant cycle spawn/drop from 1 to trillion synchronous cycles:
+
+```scheme
+;; Create thread pool
+(define pool (make-thread-pool "event-loops" #:size 100))
+
+;; Spawn 1000 execution cycles instantly
+(thread-pool-sync-cycles! pool 1000)
+
+;; Drop to 10 cycles instantly
+(thread-pool-sync-cycles! pool 10)
+
+;; Synchronize event loops and cron jobs to pool
+(thread-pool-spawn-cycle! pool (lambda () (event-loop-worker)))
+```
+
+## Virtual Devices: Pure Daemon Orchestrarchitecture
+
+Virtual devices are daemon-driven abstractions initiated by egregores, resembling nested clockwork gearing arrays with corresponding drivers.
+
+### Gesture Device - Spatio-Temporal Vectors
+
+```scheme
+(use-modules (gnu dan9 device))
+
+;; Create gesture device (touchpad-like with intent)
+(define touchpad (make-gesture-device "touchpad"))
+(device-start touchpad gesture-daemon-loop)
+
+;; Record gesture with spatio-temporal properties
+(gesture-record! touchpad 
+                100 200  ; x, y position
+                5        ; z (pressure)
+                15       ; velocity
+                '(1 0))  ; direction vector
+
+;; Recognize intent from gesture history
+(gesture-recognize touchpad)
+;; => 'swipe, 'tap, or 'drag
+```
+
+### Clockwork Device - Nested Gearing Arrays
+
+```scheme
+;; Create clockwork device with nested gears
+(define clockwork (make-clockwork-device "mechanism"))
+
+;; Add interconnected gears (like Antikythera)
+(clockwork-add-gear! clockwork (make-gear "seconds" 60))
+(clockwork-add-gear! clockwork (make-gear "minutes" 60))
+(clockwork-add-gear! clockwork (make-gear "hours" 24))
+
+;; Tick the clockwork mechanism
+(clockwork-tick! clockwork)
+```
+
+### Egregore-Device Integration
+
+```scheme
+;; Egregore initiates virtual devices
+(define device-swarm (make-swarm-egregore "device-controllers"))
+
+(define sensor1 (make-virtual-device "temp-sensor" 'sensor))
+(define sensor2 (make-virtual-device "pressure-sensor" 'sensor))
+
+;; Devices join egregore as daemons
+(egregore-add-daemon! device-swarm (device-daemon sensor1))
+(egregore-add-daemon! device-swarm (device-daemon sensor2))
+
+(egregore-start device-swarm)
+
+;; Broadcast to all devices
+(egregore-broadcast device-swarm 'calibrate '((precision . high)))
+```
+
 ## Benefits
 
 1. **Location Transparency**: Daemons can run locally or remotely
@@ -336,13 +463,19 @@ With the Antikythera mechanism, you can simulate years in seconds:
 - `namespace.scm` - Namespace daemon
 - `egregore.scm` - Daemon orchestration archetypes
 - `antikythera.scm` - Nested event loop scheduler with time scaling
+- `address.scm` - D9 address system and thread pool management
+- `device.scm` - Virtual devices (clockwork, gesture, sensors)
 - `example.scm` - Basic example usage
 - `egregore-example.scm` - Egregore orchestration example
 - `antikythera-example.scm` - Time scaling scheduler example
+- `integrated-example.scm` - Combined egregore + antikythera
+- `address-device-example.scm` - Address system + virtual devices
 - `../packages/dan9.scm` - Guix package definition
 - `../../tests/dan9.scm` - Core test suite
 - `../../tests/egregore.scm` - Egregore tests
 - `../../tests/antikythera.scm` - Antikythera tests
+- `../../tests/address.scm` - Address system tests
+- `../../tests/device.scm` - Virtual device tests
 
 ## License
 
