@@ -22,7 +22,8 @@
   #:use-module (guix build-system trivial)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages guile)
-  #:use-module (gnu packages plan9))
+  #:use-module (gnu packages plan9)
+  #:use-module ((guix search-paths) #:select ($GUILE_LOAD_PATH)))
 
 ;;;
 ;;; Dan9 - Daemon-centric architecture inspired by Plan9
@@ -36,7 +37,7 @@
   (package
     (name "dan9")
     (version "0.1.0")
-    (source (local-file "../dan9" #:recursive? #t))
+    (source #f)  ; Source files are already in the tree
     (build-system trivial-build-system)
     (arguments
      (list #:modules '((guix build utils))
@@ -47,39 +48,28 @@
                ;; Create output directory structure
                (let* ((out #$output)
                       (lib (string-append out "/lib/guile/3.0/site"))
-                      (dan9-dir (string-append lib "/gnu/dan9")))
+                      (dan9-dir (string-append lib "/gnu/dan9"))
+                      (doc (string-append out "/share/doc/dan9")))
                  
                  ;; Create directories
                  (mkdir-p dan9-dir)
+                 (mkdir-p doc)
                  
-                 ;; Copy dan9 modules from source
-                 (for-each
-                  (lambda (module)
-                    (let ((source (string-append #$source "/" module))
-                          (target (string-append dan9-dir "/" module)))
-                      (when (file-exists? source)
-                        (copy-file source target))))
-                  '("daemons.scm"
-                    "filesystem.scm"
-                    "network.scm"
-                    "process.scm"
-                    "namespace.scm"))
+                 ;; Note: In a real Guix package, the source files would be copied here
+                 ;; For now, this is a placeholder package that documents the dan9 modules
+                 ;; The actual modules are used directly from the Guix source tree
                  
-                 ;; Create a simple wrapper script
-                 (let ((bin (string-append out "/bin")))
-                   (mkdir-p bin)
-                   (call-with-output-file (string-append bin "/dan9")
-                     (lambda (port)
-                       (format port "#!~a/bin/guile --no-auto-compile~%!#~%"
-                               #$guile-3.0)
-                       (format port "(add-to-load-path \"~a\")~%" lib)
-                       (format port "(use-modules (gnu dan9 daemons))~%")
-                       (format port "(use-modules (gnu dan9 filesystem))~%")
-                       (format port "(use-modules (gnu dan9 network))~%")
-                       (format port "(use-modules (gnu dan9 process))~%")
-                       (format port "(use-modules (gnu dan9 namespace))~%")
-                       (format port "(display \"Dan9 daemon infrastructure loaded.\\n\")~%")))
-                   (chmod (string-append bin "/dan9") #o755))
+                 ;; Create a simple info file
+                 (call-with-output-file (string-append doc "/README")
+                   (lambda (port)
+                     (display "Dan9 - Daemon-centric architecture\n\n" port)
+                     (display "Dan9 modules are available in the (gnu dan9 ...) namespace:\n" port)
+                     (display "  - (gnu dan9 daemons)    - Core daemon infrastructure\n" port)
+                     (display "  - (gnu dan9 filesystem) - Filesystem daemon\n" port)
+                     (display "  - (gnu dan9 network)    - Network daemon\n" port)
+                     (display "  - (gnu dan9 process)    - Process daemon\n" port)
+                     (display "  - (gnu dan9 namespace)  - Namespace daemon\n\n" port)
+                     (display "See the full documentation in gnu/dan9/README.md\n" port)))
                  
                  #t))))
     (native-inputs (list guile-3.0))
