@@ -1,0 +1,148 @@
+name: Dan9 Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v0.1.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-test:
+    name: Build and Test Before Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y guile-3.0 guile-3.0-dev
+        
+    - name: Run all tests
+      run: |
+        cd ${{ github.workspace }}
+        echo "Running basic tests..."
+        guile -L . tests/dan9.scm
+        echo "Running E2E tests..."
+        guile -L . tests/dan9-e2e.scm
+        
+    - name: Verify all modules load
+      run: |
+        cd ${{ github.workspace }}
+        for module in daemons filesystem network process namespace egregore antikythera address device persistence monitoring logging timer; do
+          echo "Testing module: $module"
+          guile -L . -c "(use-modules (gnu dan9 $module))" || exit 1
+        done
+        
+  create-release:
+    name: Create Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get version
+      id: get_version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create release archive
+      run: |
+        mkdir -p dan9-${{ steps.get_version.outputs.version }}
+        cp -r gnu/dan9 dan9-${{ steps.get_version.outputs.version }}/
+        cp -r tests/dan9*.scm dan9-${{ steps.get_version.outputs.version }}/
+        cp gnu/packages/dan9.scm dan9-${{ steps.get_version.outputs.version }}/
+        tar czf dan9-${{ steps.get_version.outputs.version }}.tar.gz dan9-${{ steps.get_version.outputs.version }}
+        
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        cat > release_notes.md << 'EOF'
+        # Dan9 Release ${{ steps.get_version.outputs.version }}
+        
+        ## Dan9: Everything is a Daemon
+        
+        Dan9 is a daemon-centric architecture inspired by Plan9's file-centric approach.
+        Where Plan9 says "everything is a file", Dan9 says "everything is a daemon".
+        
+        ## What's Included
+        
+        ### Core Modules
+        - **daemons**: Core daemon infrastructure
+        - **filesystem**: File operations through message passing
+        - **network**: Network operations through message passing
+        - **process**: Process management through message passing
+        - **namespace**: Daemon binding and namespace management
+        
+        ### Extended Modules
+        - **egregore**: Daemon orchestration patterns (swarm, hierarchy, pipeline)
+        - **antikythera**: Time-scaled event loop scheduler
+        - **address**: D9 address system for routing
+        - **device**: Virtual devices with clockwork and gesture abstractions
+        - **persistence**: State save/restore and checkpoints
+        - **monitoring**: Real-time metrics and dashboard
+        - **logging**: Centralized logging with filtering
+        - **timer**: Scheduled task execution
+        
+        ## Installation
+        
+        ```bash
+        # Extract the archive
+        tar xzf dan9-${{ steps.get_version.outputs.version }}.tar.gz
+        
+        # Add to your Guile load path
+        export GUILE_LOAD_PATH=/path/to/dan9-${{ steps.get_version.outputs.version }}:$GUILE_LOAD_PATH
+        
+        # Use in your Scheme code
+        (use-modules (gnu dan9 daemons))
+        ```
+        
+        ## Quick Start
+        
+        ```scheme
+        (use-modules (gnu dan9 daemons))
+        
+        ;; Create a daemon
+        (define my-daemon (make-daemon "my-service" 'custom))
+        
+        ;; Start it
+        (daemon-start my-daemon my-loop-function)
+        
+        ;; Send messages
+        (daemon-send-message sender my-daemon 'request '((data . "hello")))
+        ```
+        
+        ## Documentation
+        
+        See the full documentation in the repository or included README files.
+        
+        ## License
+        
+        GNU General Public License v3 or later (GPL-3.0+)
+        EOF
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.get_version.outputs.version }}
+        name: Dan9 ${{ steps.get_version.outputs.version }}
+        body_path: release_notes.md
+        files: |
+          dan9-${{ steps.get_version.outputs.version }}.tar.gz
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
