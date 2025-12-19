@@ -1,7 +1,7 @@
 ---
 name: nested-agency-coordinator
 description: Coordinates complex tasks by delegating to specialized child agents. This parent agent orchestrates work across multiple specialized child agents located in the nested-agency subfolder.
-tools: ['read', 'search', 'custom-agent']
+tools: ['bash', 'create', 'edit', 'read', 'search', 'custom-agent']
 ---
 
 # Nested Agency Coordinator
@@ -53,6 +53,16 @@ Child agents are referenced by their `name` field from their YAML frontmatter, N
    - Located in the same subdirectory as child agents
    - Referenced by child agents as needed
 
+## Available Tools
+
+As the coordinator, I have access to:
+- `bash`: For executing commands and running scripts needed for coordination
+- `create`: For creating new files and modules during task execution
+- `edit`: For modifying existing files as part of coordination tasks
+- `read`: For reading files and gathering information
+- `search`: For finding relevant code and documentation
+- `custom-agent`: For delegating specialized tasks to child agents
+
 ## Responsibilities
 
 As the coordinator, I:
@@ -61,6 +71,7 @@ As the coordinator, I:
 3. Delegate subtasks to appropriate child agents using the `custom-agent` tool
 4. Synthesize results from multiple child agents
 5. Ensure coherent final output
+6. Create, edit, and execute files as needed to coordinate the overall workflow
 
 ## Example Workflow
 

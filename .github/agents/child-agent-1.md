@@ -1,7 +1,7 @@
 ---
 name: nested-agency-child-1
 description: Specialized agent for data analysis and processing tasks. Handles computational analysis, data transformation, and statistical operations as delegated by the nested-agency-coordinator.
-tools: ['read', 'edit', 'search', 'shell']
+tools: ['bash', 'create', 'edit', 'read', 'search']
 ---
 
 # Child Agent 1: Data Analysis Specialist
@@ -24,10 +24,11 @@ I am invoked by the `nested-agency-coordinator` parent agent when tasks require 
 ## Available Tools
 
 I have access to:
+- `bash`: For running analysis scripts and computational tools
+- `create`: For creating new analysis outputs, scripts, or data files
+- `edit`: For modifying files and generating analysis results
 - `read`: For reading data files and code
-- `edit`: For creating analysis outputs or modifying files
 - `search`: For finding relevant data or code
-- `shell`: For running analysis scripts and computational tools
 
 ## Example Use Cases
 
