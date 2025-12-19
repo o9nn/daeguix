@@ -89,6 +89,42 @@ Daemon-driven device abstractions:
 - Egregore integration: devices initiated by orchestrators
 - Pure daemon orchestrarchitecture
 
+### 10. Persistence (`persistence.scm`)
+
+State persistence and recovery for daemons:
+- Daemon state serialization and deserialization
+- Checkpoint and restore functionality
+- Automatic periodic checkpoints
+- Manual checkpoint control
+- Configurable checkpoint policies
+
+### 11. Monitoring (`monitoring.scm`)
+
+Real-time daemon monitoring and dashboard:
+- Metrics collection and history tracking
+- Aggregate statistics (min, max, average)
+- Text-based monitoring dashboard
+- Daemon status visualization
+- Metrics tables and reports
+
+### 12. Logging (`logging.scm`)
+
+Centralized logging for all daemons:
+- Log levels (debug, info, warning, error, critical)
+- Log filtering by level and source
+- Log buffer with configurable size
+- Log file output support
+- Log entry formatting and display
+
+### 13. Timer (`timer.scm`)
+
+Scheduled task execution:
+- One-time scheduled tasks
+- Repeating scheduled tasks
+- Task cancellation
+- Task status monitoring
+- Inter-daemon task coordination
+
 ## Usage
 
 ### Basic Example
@@ -120,6 +156,161 @@ Daemon-driven device abstractions:
 ;; => ((read-count . 42) (write-count . 17) ...)
 ```
 
+### Persistence Example
+
+```scheme
+(use-modules (gnu dan9 daemons)
+             (gnu dan9 persistence))
+
+;; Create persistence daemon
+(define pers (make-persistence-daemon
+              #:state-directory "/tmp/dan9-state"
+              #:checkpoint-interval 300))
+(daemon-start pers persistence-daemon-loop)
+
+;; Create a worker daemon
+(define worker (make-daemon "worker" 'worker))
+(daemon-start worker worker-loop)
+
+;; Do some work, accumulate state
+(daemon-set-metric! worker 'tasks-completed 42)
+
+;; Save state manually
+(daemon-save-state worker #:directory "/tmp/dan9-state")
+
+;; Or request persistence daemon to save
+(daemon-send-message pers pers 'save '((daemon-name . "worker")))
+
+;; Later, restore state
+(let ((state (daemon-load-state worker #:directory "/tmp/dan9-state")))
+  (format #t "Restored state: ~a~%" state))
+
+;; Checkpoint all daemons
+(daemon-send-message pers pers 'checkpoint-all '())
+```
+
+### Monitoring Example
+
+```scheme
+(use-modules (gnu dan9 daemons)
+             (gnu dan9 monitoring))
+
+;; Create monitoring daemon
+(define monitor (make-monitoring-daemon #:collect-interval 5))
+(daemon-start monitor monitoring-daemon-loop)
+
+;; Display real-time dashboard
+(daemon-send-message monitor monitor 'dashboard '())
+
+;; Show specific daemon status
+(daemon-send-message monitor monitor 'status
+                    '((daemon-name . "worker")))
+
+;; Display metrics table
+(daemon-send-message monitor monitor 'metrics-table
+                    '((metric-name . tasks-completed)))
+
+;; Get metric history for analysis
+(let ((history (monitor-history "worker" #:metric-name 'tasks-completed)))
+  (format #t "Task history: ~a~%" history))
+
+;; Compute aggregate statistics
+(let ((agg (monitor-aggregate "worker" 'cpu-load)))
+  (format #t "CPU stats: ~a~%" agg))
+```
+
+### Logging Example
+
+```scheme
+(use-modules (gnu dan9 daemons)
+             (gnu dan9 logging))
+
+;; Create logging daemon
+(define logger (make-logging-daemon #:min-level 'info))
+(daemon-start logger logging-daemon-loop)
+
+;; Log messages from any daemon
+(log-info "worker-1" "Task started")
+(log-warning "worker-2" "High memory usage detected")
+(log-error "worker-3" "Failed to process request")
+
+;; Display recent logs
+(daemon-send-message logger logger 'display '((limit . 20)))
+
+;; Display filtered logs
+(daemon-send-message logger logger 'display
+                    '((level . warning) (limit . 10)))
+
+;; Write logs to file
+(daemon-send-message logger logger 'write-file
+                    '((filepath . "/tmp/dan9.log")))
+```
+
+### Timer Example
+
+```scheme
+(use-modules (gnu dan9 daemons)
+             (gnu dan9 timer))
+
+;; Create timer daemon
+(define timer (make-timer-daemon #:tick-interval 1))
+(daemon-start timer timer-daemon-loop)
+
+;; Schedule one-time task (send message in 10 seconds)
+(schedule-task 10 "worker" 'process '((data . "batch-1")))
+
+;; Schedule repeating task (every 30 seconds)
+(schedule-repeating-task 30 "worker" 'heartbeat '())
+
+;; List scheduled tasks
+(list-scheduled-tasks)
+
+;; Cancel a task
+(let ((task-id (schedule-task 60 "worker" 'cleanup '())))
+  (cancel-task task-id))
+
+;; View timer statistics
+(daemon-send-message timer timer 'stats '())
+```
+
+### Integrated System Example
+
+```scheme
+(use-modules (gnu dan9 daemons)
+             (gnu dan9 persistence)
+             (gnu dan9 monitoring)
+             (gnu dan9 logging)
+             (gnu dan9 timer))
+
+;; Start all system daemons
+(define logger (make-logging-daemon))
+(define monitor (make-monitoring-daemon))
+(define pers (make-persistence-daemon))
+(define timer (make-timer-daemon))
+
+(for-each daemon-start
+          (list (list logger logging-daemon-loop)
+                (list monitor monitoring-daemon-loop)
+                (list pers persistence-daemon-loop)
+                (list timer timer-daemon-loop)))
+
+;; Create worker that uses all services
+(define worker (make-daemon "worker" 'worker))
+(daemon-start worker worker-loop)
+
+;; Schedule periodic monitoring
+(schedule-repeating-task 10 "monitoring" 'dashboard '())
+
+;; Schedule periodic checkpoints
+(schedule-repeating-task 300 "persistence" 'checkpoint-all '())
+
+;; Log system events
+(log-info "system" "Integrated Dan9 system started")
+
+;; Monitor everything
+(daemon-send-message timer monitor 'dashboard '())
+```
+
 ### Running the Example
 
 ```bash
@@ -134,6 +325,15 @@ guile -L /path/to/daeguix gnu/dan9/antikythera-example.scm
 
 # Run address system & virtual devices example
 guile -L /path/to/daeguix gnu/dan9/address-device-example.scm
+
+# Run persistence example
+guile -L /path/to/daeguix gnu/dan9/persistence-example.scm
+
+# Run monitoring dashboard example
+guile -L /path/to/daeguix gnu/dan9/monitoring-example.scm
+
+# Run integrated system example (all new features)
+guile -L /path/to/daeguix gnu/dan9/integrated-system-example.scm
 ```
 
 ### Running Tests
@@ -153,8 +353,15 @@ guile -L /path/to/daeguix tests/address.scm
 
 # Virtual device tests
 guile -L /path/to/daeguix tests/device.scm
-```
-guile -L /path/to/daeguix tests/antikythera.scm
+
+# Persistence tests
+guile -L /path/to/daeguix tests/persistence.scm
+
+# Monitoring tests
+guile -L /path/to/daeguix tests/monitoring.scm
+
+# Logging and timer tests
+guile -L /path/to/daeguix tests/logging-timer.scm
 ```
 
 ## Architecture
@@ -445,37 +652,84 @@ Virtual devices are daemon-driven abstractions initiated by egregores, resemblin
 - Can distribute daemons across processes
 - Future: network-transparent daemons
 
+## New Features (2025)
+
+Dan9 has been extended with several powerful new features:
+
+### ✓ Persistence
+- **State Management**: Save and restore daemon states
+- **Checkpoints**: Automatic and manual checkpoint creation
+- **Recovery**: Restore daemons from saved checkpoints
+- **Policies**: Configurable checkpoint policies (interval, on-stop, on-change)
+
+### ✓ Monitoring Dashboard
+- **Real-time Metrics**: Collect and track daemon metrics over time
+- **Dashboard**: Text-based monitoring dashboard with status visualization
+- **Analytics**: Aggregate statistics (min, max, average, count)
+- **History**: Metric history tracking with configurable buffer size
+
+### ✓ Centralized Logging
+- **Log Levels**: Debug, info, warning, error, critical
+- **Filtering**: Filter logs by level and source
+- **Storage**: In-memory buffer with optional file output
+- **API**: Simple logging API for all daemons
+
+### ✓ Task Scheduling
+- **Scheduled Tasks**: Execute tasks at future times
+- **Repeating Tasks**: Periodic task execution
+- **Cancellation**: Cancel scheduled tasks
+- **Coordination**: Schedule messages between daemons
+
 ## Future Directions
 
 1. **Network Protocol**: 9P-like protocol for remote daemons
 2. **Discovery**: Automatic daemon discovery
 3. **Security**: Authentication and authorization
-4. **Persistence**: State persistence and recovery
-5. **Monitoring**: Real-time dashboard
-6. **More Daemons**: Graphics, audio, storage, etc.
+4. **More Daemons**: Graphics, audio, storage, etc.
 
 ## Files
 
+### Core Infrastructure
 - `daemons.scm` - Core daemon infrastructure
 - `filesystem.scm` - Filesystem daemon
 - `network.scm` - Network daemon
 - `process.scm` - Process management daemon
 - `namespace.scm` - Namespace daemon
+
+### Advanced Features
 - `egregore.scm` - Daemon orchestration archetypes
 - `antikythera.scm` - Nested event loop scheduler with time scaling
 - `address.scm` - D9 address system and thread pool management
 - `device.scm` - Virtual devices (clockwork, gesture, sensors)
+
+### New Features (2025)
+- `persistence.scm` - State persistence and recovery
+- `monitoring.scm` - Real-time monitoring and dashboard
+- `logging.scm` - Centralized logging system
+- `timer.scm` - Scheduled task execution
+
+### Examples
 - `example.scm` - Basic example usage
 - `egregore-example.scm` - Egregore orchestration example
 - `antikythera-example.scm` - Time scaling scheduler example
 - `integrated-example.scm` - Combined egregore + antikythera
 - `address-device-example.scm` - Address system + virtual devices
-- `../packages/dan9.scm` - Guix package definition
+- `persistence-example.scm` - State persistence demonstration
+- `monitoring-example.scm` - Monitoring dashboard demonstration
+- `integrated-system-example.scm` - All new features working together
+
+### Tests
 - `../../tests/dan9.scm` - Core test suite
 - `../../tests/egregore.scm` - Egregore tests
 - `../../tests/antikythera.scm` - Antikythera tests
 - `../../tests/address.scm` - Address system tests
 - `../../tests/device.scm` - Virtual device tests
+- `../../tests/persistence.scm` - Persistence tests
+- `../../tests/monitoring.scm` - Monitoring tests
+- `../../tests/logging-timer.scm` - Logging and timer tests
+
+### Package
+- `../packages/dan9.scm` - Guix package definition
 
 ## License
 
