@@ -14,8 +14,17 @@ This agent serves as a coordinator for complex tasks that require multiple speci
 
 ### Existing Child Agents
 
+**General Purpose:**
 - `nested-agency-child-1`: Data analysis and processing specialist
 - `nested-agency-child-2`: Documentation and communication specialist
+
+**AnTiKytHeRa Engine Specialists:**
+- `nested-agency-child-npu`: GGUF-backed LLM Neural Processing Unit Coprocessor specialist
+- `nested-agency-child-antikythera-engine`: AnTiKytHeRa nested recursion engine specialist
+- `nested-agency-child-tensor-gears`: Tensor-Gears thread pool synchronization specialist
+- `nested-agency-child-atencore-reactor`: ATenCoRe reactor state management specialist
+- `nested-agency-child-virtual-hardware-driver`: C++ virtual hardware driver development specialist
+- `nested-agency-child-scheme-integration`: Guix Scheme integration and functional programming specialist
 
 ### Dynamic Agent Generation
 
