@@ -1,3 +1,8 @@
+---
+name: introspection
+description: Copilot introspection and ontogenetic self-reflection
+---
+
 # Copilot Introspection: Ontogenetic Self-Reflection
 
 ## Recursive Self-Definition
