@@ -1,6 +1,6 @@
 ---
 name: nested-agency-child-{SPECIALIZATION_ID}
-description: {SPECIALIZATION_DESCRIPTION} - Specialized child agent created by nested-agency-coordinator for {TASK_DOMAIN} tasks.
+description: "{SPECIALIZATION_DESCRIPTION} - Specialized child agent created by nested-agency-coordinator for {TASK_DOMAIN} tasks."
 tools: ['bash', 'create', 'edit', 'read', 'search']
 ---
 
