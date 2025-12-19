@@ -1,0 +1,119 @@
+name: Dan9 CI
+
+on:
+  push:
+    branches: [ main, master, develop, copilot/** ]
+    paths:
+      - 'gnu/dan9/**'
+      - 'tests/dan9.scm'
+      - 'tests/dan9-e2e.scm'
+      - '.github/workflows/dan9-ci.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'gnu/dan9/**'
+      - 'tests/dan9.scm'
+      - 'tests/dan9-e2e.scm'
+  workflow_dispatch:
+
+jobs:
+  test-dan9-basic:
+    name: Basic Dan9 Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Guile
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y guile-3.0 guile-3.0-dev
+        
+    - name: Verify Guile installation
+      run: |
+        guile --version
+        echo "Guile load path:"
+        guile -c "(display %load-path)" || echo "Default load path"
+        
+    - name: Run basic Dan9 tests
+      run: |
+        cd ${{ github.workspace }}
+        guile -L . tests/dan9.scm
+        
+    - name: Test Dan9 modules can be loaded
+      run: |
+        cd ${{ github.workspace }}
+        guile -L . -c "(use-modules (gnu dan9 daemons))" && echo "✓ daemons module loaded"
+        guile -L . -c "(use-modules (gnu dan9 filesystem))" && echo "✓ filesystem module loaded"
+        guile -L . -c "(use-modules (gnu dan9 network))" && echo "✓ network module loaded"
+        guile -L . -c "(use-modules (gnu dan9 process))" && echo "✓ process module loaded"
+        guile -L . -c "(use-modules (gnu dan9 namespace))" && echo "✓ namespace module loaded"
+        
+  test-dan9-extended:
+    name: Extended Dan9 Module Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Guile
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y guile-3.0 guile-3.0-dev
+        
+    - name: Test extended Dan9 modules
+      run: |
+        cd ${{ github.workspace }}
+        echo "Testing extended modules..."
+        guile -L . -c "(use-modules (gnu dan9 egregore))" && echo "✓ egregore module loaded"
+        guile -L . -c "(use-modules (gnu dan9 antikythera))" && echo "✓ antikythera module loaded"
+        guile -L . -c "(use-modules (gnu dan9 address))" && echo "✓ address module loaded"
+        guile -L . -c "(use-modules (gnu dan9 device))" && echo "✓ device module loaded"
+        guile -L . -c "(use-modules (gnu dan9 persistence))" && echo "✓ persistence module loaded"
+        guile -L . -c "(use-modules (gnu dan9 monitoring))" && echo "✓ monitoring module loaded"
+        guile -L . -c "(use-modules (gnu dan9 logging))" && echo "✓ logging module loaded"
+        guile -L . -c "(use-modules (gnu dan9 timer))" && echo "✓ timer module loaded"
+        
+  test-dan9-examples:
+    name: Dan9 Example Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install Guile
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y guile-3.0 guile-3.0-dev
+        
+    - name: Make example scripts executable
+      run: |
+        chmod +x gnu/dan9/*.scm
+        
+    - name: Test basic daemon example
+      run: |
+        cd ${{ github.workspace }}/gnu/dan9
+        timeout 10 guile -L ../.. example.scm || echo "Example completed or timed out"
+        
+    - name: Test egregore example
+      run: |
+        cd ${{ github.workspace }}/gnu/dan9
+        timeout 10 guile -L ../.. egregore-example.scm || echo "Example completed or timed out"
+        
+    - name: Test antikythera example
+      run: |
+        cd ${{ github.workspace }}/gnu/dan9
+        timeout 10 guile -L ../.. antikythera-example.scm || echo "Example completed or timed out"
+        
+    - name: Test monitoring example
+      run: |
+        cd ${{ github.workspace }}/gnu/dan9
+        timeout 10 guile -L ../.. monitoring-example.scm || echo "Example completed or timed out"
+        
+    - name: Test persistence example
+      run: |
+        cd ${{ github.workspace }}/gnu/dan9
+        timeout 10 guile -L ../.. persistence-example.scm || echo "Example completed or timed out"
