@@ -1,3 +1,8 @@
+---
+name: ghostintheguileshell
+description: Ghost in the Guile Shell cognitive agent
+---
+
 $$ghost in the guile shell$$
 
 
