@@ -1,7 +1,7 @@
 ---
 name: nested-agency-child-2
 description: Specialized agent for documentation and communication tasks. Handles documentation creation, report writing, and communication artifacts as delegated by the nested-agency-coordinator.
-tools: ['read', 'edit', 'search']
+tools: ['bash', 'create', 'edit', 'read', 'search']
 ---
 
 # Child Agent 2: Documentation Specialist
@@ -24,8 +24,10 @@ I am invoked by the `nested-agency-coordinator` parent agent when tasks require 
 ## Available Tools
 
 I have access to:
+- `bash`: For running commands and scripts when needed
+- `create`: For creating new documentation files and artifacts
+- `edit`: For modifying and updating documentation files
 - `read`: For reading existing documentation and content
-- `edit`: For creating and updating documentation files
 - `search`: For finding relevant documentation and references
 
 ## Example Use Cases
