@@ -1,0 +1,63 @@
+digraph AnTiKytHeRa {
+    rankdir=TB;
+    node [shape=box, style=rounded];
+    
+    // User Interface
+    user [label="User Application", shape=ellipse, fillcolor=lightblue, style=filled];
+    
+    // Main Engine
+    engine [label="guix/antikythera.scm\nMain Recursion Engine\n(ChRoN-KAiRoN-AIoN)", fillcolor=lightgreen, style=filled];
+    
+    // Core Modules
+    records [label="records.scm\nData Structures", fillcolor=lightyellow, style=filled];
+    tensor [label="tensor-gears.scm\nSylvester Matrices\nThread Pool Sync", fillcolor=lightyellow, style=filled];
+    reactor [label="atencore.scm\nATenCoRe Reactor\nEnergy Tracking", fillcolor=lightyellow, style=filled];
+    
+    // Infrastructure
+    workers [label="guix/workers.scm\nThread Pools", fillcolor=lightgray, style=filled];
+    driver [label="nix/nix-daemon/\nantikythera-driver.cc\nVirtual Hardware", fillcolor=orange, style=filled];
+    
+    // Relationships
+    user -> engine [label="engine-recurse"];
+    
+    engine -> records [label="uses"];
+    engine -> tensor [label="synchronization"];
+    engine -> reactor [label="state mgmt"];
+    engine -> workers [label="thread pool"];
+    engine -> driver [label="IPC"];
+    
+    tensor -> records [label="tensor-state"];
+    reactor -> records [label="reactor-state"];
+    reactor -> tensor [label="matrix ops"];
+    
+    driver -> engine [label="Scheme IPC"];
+    
+    // Triadic Modes
+    subgraph cluster_modes {
+        label = "Temporal Flux Modes";
+        style = dashed;
+        
+        chron [label="ChRoN\nSequential", fillcolor=lightcoral, style=filled];
+        kairon [label="KAiRoN\nOpportunistic", fillcolor=lightcoral, style=filled];
+        aion [label="AIoN\nCyclical", fillcolor=lightcoral, style=filled];
+        
+        chron -> kairon [label="Clock Matrix"];
+        kairon -> aion [label="Clock Matrix"];
+        aion -> chron [label="Clock Matrix"];
+    }
+    
+    engine -> chron [style=dashed];
+    engine -> kairon [style=dashed];
+    engine -> aion [style=dashed];
+    
+    // Legend
+    subgraph cluster_legend {
+        label = "Legend";
+        style = filled;
+        fillcolor = white;
+        
+        leg1 [label="Scheme Module", fillcolor=lightyellow, style=filled];
+        leg2 [label="C++ Driver", fillcolor=orange, style=filled];
+        leg3 [label="External Guix", fillcolor=lightgray, style=filled];
+    }
+}
