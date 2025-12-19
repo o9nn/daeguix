@@ -64,11 +64,19 @@
                    (lambda (port)
                      (display "Dan9 - Daemon-centric architecture\n\n" port)
                      (display "Dan9 modules are available in the (gnu dan9 ...) namespace:\n" port)
-                     (display "  - (gnu dan9 daemons)    - Core daemon infrastructure\n" port)
-                     (display "  - (gnu dan9 filesystem) - Filesystem daemon\n" port)
-                     (display "  - (gnu dan9 network)    - Network daemon\n" port)
-                     (display "  - (gnu dan9 process)    - Process daemon\n" port)
-                     (display "  - (gnu dan9 namespace)  - Namespace daemon\n\n" port)
+                     (display "  - (gnu dan9 daemons)      - Core daemon infrastructure\n" port)
+                     (display "  - (gnu dan9 filesystem)   - Filesystem daemon\n" port)
+                     (display "  - (gnu dan9 network)      - Network daemon\n" port)
+                     (display "  - (gnu dan9 process)      - Process daemon\n" port)
+                     (display "  - (gnu dan9 namespace)    - Namespace daemon\n" port)
+                     (display "  - (gnu dan9 egregore)     - Daemon orchestration\n" port)
+                     (display "  - (gnu dan9 antikythera)  - Time-scaled scheduler\n" port)
+                     (display "  - (gnu dan9 address)      - D9 address system\n" port)
+                     (display "  - (gnu dan9 device)       - Virtual devices\n" port)
+                     (display "  - (gnu dan9 persistence)  - State persistence\n" port)
+                     (display "  - (gnu dan9 monitoring)   - Monitoring dashboard\n" port)
+                     (display "  - (gnu dan9 logging)      - Centralized logging\n" port)
+                     (display "  - (gnu dan9 timer)        - Scheduled tasks\n\n" port)
                      (display "See the full documentation in gnu/dan9/README.md\n" port)))
                  
                  #t))))
@@ -90,6 +98,14 @@ resources through daemon message passing.  This package provides:
 @item Network daemon for network operations through message passing
 @item Process daemon for process management through message passing
 @item Namespace daemon for daemon binding and namespace management
+@item Egregore orchestration for coordinating daemon groups
+@item Antikythera time-scaled event loop scheduler
+@item D9 address system for daemon routing and thread pools
+@item Virtual devices with clockwork and gesture abstractions
+@item Persistence for daemon state save/restore and checkpoints
+@item Monitoring dashboard for real-time metrics and visualization
+@item Centralized logging with filtering and multiple log levels
+@item Timer daemon for scheduled task execution
 @end itemize
 
 Dan9 daemons communicate through message passing, similar to how Plan9
