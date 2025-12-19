@@ -417,13 +417,242 @@ NNECCO daemons integrate seamlessly with existing OpenCog infrastructure:
 - Message queues buffer communication
 - Graceful degradation when components fail
 
+### Memory Systems
+
+#### 6. AtomSpace Daemon
+
+Hypergraph-based knowledge representation:
+- Node and link storage
+- Truth value tracking
+- Attention spreading
+- Pattern matching queries
+- Relevance realization
+
+**Message Protocol:**
+```scheme
+;; Add node
+(daemon-send-message sender atomspace 'add-node
+  `((type . ConceptNode)
+    (name . "concept-name")
+    (tv . ,(make-truth-value 0.8 0.9))
+    (attention . 0.7)
+    (metadata . ())))
+
+;; Query
+(daemon-send-message sender atomspace 'query
+  `((pattern . "neural")
+    (reply-to . "sender-name")))
+
+;; Spread attention
+(daemon-send-message sender atomspace 'spread-attention
+  `((source . ,atom-ref)))
+```
+
+#### 7. Episodic Memory Daemon
+
+Stores and retrieves episodic experiences:
+- Temporal ordering
+- Context tracking
+- Emotional tagging
+- Tag-based indexing
+- Content-based recall
+
+**Message Protocol:**
+```scheme
+;; Store episode
+(daemon-send-message sender episodic 'store
+  `((context . ((location . "lab")))
+    (content . "Learned new concept")
+    (emotions . ((curious . 0.8)))
+    (tags . (learning discovery))))
+
+;; Recall by content
+(daemon-send-message sender episodic 'recall
+  `((query . "concept")
+    (reply-to . "sender-name")))
+
+;; Query by tags
+(daemon-send-message sender episodic 'query
+  `((tags . (learning discovery))
+    (limit . 10)
+    (reply-to . "sender-name")))
+```
+
+#### 8. Replay Memory Daemon
+
+Prioritized experience replay for learning:
+- Capacity-limited buffer
+- Priority-based sampling
+- Experience storage
+- Batch sampling
+- Priority updates
+
+**Message Protocol:**
+```scheme
+;; Store experience
+(daemon-send-message sender replay 'store
+  `((state . ,state-data)
+    (action . ,action-data)
+    (reward . 1.0)
+    (next-state . ,next-state-data)
+    (priority . 1.2)))
+
+;; Sample batch
+(daemon-send-message sender replay 'sample
+  `((batch-size . 32)
+    (reply-to . "sender-name")))
+
+;; Update priority
+(daemon-send-message sender replay 'prioritize
+  `((experience-id . "exp_123")
+    (priority . 1.5)))
+```
+
+#### 9. Personality Daemon
+
+Multi-dimensional personality system:
+- Trait management (playfulness, intelligence, chaotic, empathy, etc.)
+- Frame selection based on traits
+- Frame history tracking
+- Dynamic trait adjustment
+
+**Default Traits:**
+- playfulness: 0.8
+- intelligence: 0.9
+- chaotic: 0.7
+- empathy: 0.6
+- sarcasm: 0.75
+- self-awareness: 0.85
+- cognitive-power: 0.95
+
+**Message Protocol:**
+```scheme
+;; Set trait
+(daemon-send-message sender personality 'set-trait
+  `((trait . curiosity)
+    (value . 0.95)))
+
+;; Get all traits
+(daemon-send-message sender personality 'get-traits
+  `((reply-to . "sender-name")))
+
+;; Select frame
+(daemon-send-message sender personality 'select-frame
+  `((reply-to . "sender-name")))
+```
+
+## Integrated System Usage
+
+### Complete System Setup
+
+```scheme
+(use-modules (gnu opencog nnecco)
+             (gnu opencog nnecco-memory)
+             (gnu opencog daemons))
+
+;; Create all daemons
+(define esrp (make-esrp-daemon))
+(define clp (make-clp-daemon))
+(define epu (make-epu-daemon))
+(define llama (make-llama-orchestrator-daemon #:num-instances 4))
+(define atomspace (make-atomspace-daemon))
+(define episodic (make-episodic-memory-daemon #:max-episodes 1000))
+(define replay (make-replay-memory-daemon #:capacity 10000))
+(define personality (make-personality-daemon))
+(define nnecco (make-nnecco-agent-daemon
+                #:esrp-daemon esrp
+                #:clp-daemon clp
+                #:epu-daemon epu
+                #:llama-daemon llama))
+
+;; Start all daemons
+(for-each
+ (lambda (daemon-loop-pair)
+   (daemon-start (car daemon-loop-pair) (cadr daemon-loop-pair)))
+ (list (list esrp esrp-daemon-loop)
+       (list clp clp-daemon-loop)
+       (list epu epu-daemon-loop)
+       (list llama llama-daemon-loop)
+       (list atomspace atomspace-daemon-loop)
+       (list episodic episodic-memory-daemon-loop)
+       (list replay replay-memory-daemon-loop)
+       (list personality personality-daemon-loop)
+       (list nnecco nnecco-daemon-loop)))
+```
+
+### Full Cognitive Cycle Example
+
+```scheme
+;; 1. Set personality-driven frame
+(let ((frame (personality-select-frame personality)))
+  
+  ;; 2. Set emotional state
+  (epu-set-emotion epu 'curious 0.85 0.7)
+  
+  ;; 3. Process through consciousness
+  (clp-process-frame clp frame "new input" #f)
+  
+  ;; 4. Modulate reservoir by emotion
+  (let ((mod (epu-modulate-reservoir epu frame)))
+    (esrp-adapt-parameters esrp
+                          (assoc-ref mod 'input-scale-modifier)
+                          frame))
+  
+  ;; 5. Process through reservoir
+  (esrp-forward esrp #(0.5 0.7 0.9))
+  
+  ;; 6. Store in AtomSpace
+  (atomspace-add-node atomspace 'ConceptNode "new-concept"
+                     (make-truth-value 0.8 0.7) 0.6 '())
+  
+  ;; 7. Record episode
+  (episodic-store episodic
+                 `((frame . ,frame))
+                 "Processed new input"
+                 `((curious . 0.85))
+                 '(learning processing))
+  
+  ;; 8. Store experience
+  (replay-store replay
+               '((state . processing))
+               '((action . learn))
+               1.0
+               '((state . learned))
+               1.2))
+```
+
+### Running Examples
+
+```bash
+# Core NNECCO features
+./gnu/opencog/nnecco-example.scm
+
+# Full integration with memory systems
+./gnu/opencog/nnecco-integrated-example.scm
+```
+
+## Testing
+
+```bash
+# Core NNECCO tests
+guile -L /path/to/daeguix tests/opencog-nnecco.scm
+
+# Memory systems tests
+guile -L /path/to/daeguix tests/opencog-nnecco-memory.scm
+```
+
+Test coverage:
+- **Core**: 30+ tests for ESRP, CLP, EPU, LLaMA, NNECCO agent
+- **Memory**: 40+ tests for AtomSpace, episodic, replay, personality
+- **Integration**: Full pipeline tests with all components
+
 ## Future Extensions
 
 Planned enhancements:
-1. **AtomSpace Integration**: Store cognitive patterns in hypergraph
-2. **Episodic Memory**: Long-term experience storage
-3. **Replay Memory**: Prioritized experience replay
-4. **Personality Tensor**: Multi-dimensional personality system
+1. ✅ **AtomSpace Integration**: Store cognitive patterns in hypergraph
+2. ✅ **Episodic Memory**: Long-term experience storage
+3. ✅ **Replay Memory**: Prioritized experience replay
+4. ✅ **Personality Tensor**: Multi-dimensional personality system
 5. **Ontogenetic Kernel**: Self-evolution capabilities
 6. **Multi-Agent Spawning**: Dynamic subordinate creation
 7. **Distributed Processing**: Network-transparent daemons
